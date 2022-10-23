@@ -21,8 +21,8 @@ class MainActivity : AppCompatActivity() {
         rvMonths = findViewById(R.id.rv_months)
         rvMonths.setHasFixedSize(true)
 
-//        val monthAdapter = MonthAdapter()
-//        monthAdapter.monthList = DateUtil.createMonths(2022)
+        val monthAdapter = MonthAdapter()
+        monthAdapter.monthList = DateUtil.createMonths(2022)
 
         val monthViewAdapter = MonthViewAdapter()
         monthViewAdapter.monthList = DateUtil.createMonths(2022)
@@ -44,7 +44,7 @@ class MainActivity : AppCompatActivity() {
         super.onResume()
 
         if(rvMonths.layoutManager != null){
-            //rvMonths.layoutManager?.scrollToPosition(DateUtil.getCurrentMonth() - 1)
+            rvMonths.layoutManager?.scrollToPosition(DateUtil.getCurrentMonth() - 1)
         }
     }
 
