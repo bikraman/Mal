@@ -3,4 +3,4 @@ A simple barebones calendar app for android. The idea is to eventually make it v
 
 ###Screenshot
 
-![screenshot](https://github.com/beniezsche/Mal/blob/master/screenshot1.jpg?raw=true)
+![screenshot](https://github.com/beniezsche/Mal/blob/master/screenshot/screenshot1.jpg?raw=true)
