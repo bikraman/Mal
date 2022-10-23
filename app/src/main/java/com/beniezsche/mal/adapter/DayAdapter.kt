@@ -33,13 +33,10 @@ class DayAdapter : RecyclerView.Adapter<DayAdapter.DayViewHolder>() {
         parent: ViewGroup,
         viewType: Int
     ): DayAdapter.DayViewHolder {
-        Log.d(DateUtil.CURRENT_DEBUG, "Day onCreateView called")
         return DayViewHolder(LayoutInflater.from(parent.context).inflate(R.layout.item_day,parent,false))
     }
 
     override fun onBindViewHolder(holder: DayAdapter.DayViewHolder, position: Int) {
-
-        Log.d(DateUtil.CURRENT_DEBUG, "Day onBindViewHolder called")
 
         val day = daysList[position]
 
@@ -69,7 +66,6 @@ class DayAdapter : RecyclerView.Adapter<DayAdapter.DayViewHolder>() {
                 } days apart",
                 Toast.LENGTH_SHORT).show()
 
-            Log.d(DateUtil.CURRENT_DEBUG, position.toString())
         }
 
     }

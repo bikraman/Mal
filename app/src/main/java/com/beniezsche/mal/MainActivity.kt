@@ -7,6 +7,7 @@ import android.util.AttributeSet
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.beniezsche.mal.adapter.MonthAdapter
+import com.beniezsche.mal.adapter.MonthViewAdapter
 import com.beniezsche.mal.model.DateUtil
 
 class MainActivity : AppCompatActivity() {
@@ -20,10 +21,13 @@ class MainActivity : AppCompatActivity() {
         rvMonths = findViewById(R.id.rv_months)
         rvMonths.setHasFixedSize(true)
 
-        val monthAdapter = MonthAdapter()
-        monthAdapter.monthList = DateUtil.createMonths(2022)
+//        val monthAdapter = MonthAdapter()
+//        monthAdapter.monthList = DateUtil.createMonths(2022)
 
-        rvMonths.adapter = monthAdapter
+        val monthViewAdapter = MonthViewAdapter()
+        monthViewAdapter.monthList = DateUtil.createMonths(2022)
+
+        rvMonths.adapter = monthViewAdapter
 
         val linearLayoutManager  = LinearLayoutManager(this)
         linearLayoutManager.orientation = LinearLayoutManager.VERTICAL

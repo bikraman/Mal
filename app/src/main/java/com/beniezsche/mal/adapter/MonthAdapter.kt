@@ -19,6 +19,7 @@ import com.beniezsche.mal.model.MonthModel
 class MonthAdapter: RecyclerView.Adapter<MonthAdapter.MonthViewHolder>() {
 
     var monthList = ArrayList<MonthModel>()
+    var viewPool: RecyclerView.RecycledViewPool = RecyclerView.RecycledViewPool()
 
     private var gridSpacingItemDecoration: GridSpacingItemDecoration = GridSpacingItemDecoration(7, 14, true)
 
@@ -27,14 +28,10 @@ class MonthAdapter: RecyclerView.Adapter<MonthAdapter.MonthViewHolder>() {
             parent: ViewGroup,
             viewType: Int
     ): MonthAdapter.MonthViewHolder {
-        Log.d(DateUtil.CURRENT_DEBUG, "Month onCreateView called")
         return MonthViewHolder(LayoutInflater.from(parent.context).inflate(R.layout.item_month, parent, false))
     }
 
     override fun onBindViewHolder(holder: MonthAdapter.MonthViewHolder, position: Int) {
-
-        Log.d(DateUtil.CURRENT_DEBUG, "Month onBindViewHolder called")
-
 
         val month = monthList[position]
         holder.tvMonth.text = month.name
@@ -84,7 +81,7 @@ class MonthAdapter: RecyclerView.Adapter<MonthAdapter.MonthViewHolder>() {
 
             rvDays.adapter = dayAdapter
 
-            rvDays.setItemViewCacheSize(1)
+            rvDays.setRecycledViewPool(viewPool)
         }
     }
 
