@@ -1,23 +1,14 @@
 package com.beniezsche.mal.adapter
 
-import android.content.Context
-import android.graphics.Rect
-import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.CalendarView
-import android.widget.GridView
 import android.widget.TextView
-import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.RecyclerView
-import androidx.recyclerview.widget.RecyclerView.ItemDecoration
 import com.beniezsche.mal.R
 import com.beniezsche.mal.custom_view.MonthView
-import com.beniezsche.mal.model.DateUtil
-import com.beniezsche.mal.model.Day
 import com.beniezsche.mal.model.MonthModel
-import org.w3c.dom.Text
+
 
 class MonthViewAdapter: RecyclerView.Adapter<MonthViewAdapter.MonthViewHolder>() {
 
