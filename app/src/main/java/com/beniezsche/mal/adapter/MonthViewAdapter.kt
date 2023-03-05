@@ -8,11 +8,20 @@ import androidx.recyclerview.widget.RecyclerView
 import com.beniezsche.mal.R
 import com.beniezsche.mal.custom_view.MonthView
 import com.beniezsche.mal.model.MonthModel
+import java.util.Calendar
 
 
 class MonthViewAdapter: RecyclerView.Adapter<MonthViewAdapter.MonthViewHolder>() {
 
     var monthList = ArrayList<MonthModel>()
+    var currentMonth : Int = -1
+
+    override fun onAttachedToRecyclerView(recyclerView: RecyclerView) {
+        super.onAttachedToRecyclerView(recyclerView)
+
+        currentMonth = Calendar.getInstance().get(Calendar.MONTH)
+
+    }
 
     override fun onCreateViewHolder(
             parent: ViewGroup,
@@ -28,7 +37,8 @@ class MonthViewAdapter: RecyclerView.Adapter<MonthViewAdapter.MonthViewHolder>()
 
 //        Log.d(DateUtil.CURRENT_DEBUG, "${month.name!!} = ${month.days?.size}" )
 
-        holder.monthView.days = month.days?.toTypedArray()
+        holder.monthView.daysInTheMonth = month.days?.toTypedArray()
+        holder.monthView.isCurrentMonth = position == currentMonth
 
     }
 

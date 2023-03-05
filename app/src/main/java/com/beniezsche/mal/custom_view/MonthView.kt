@@ -10,38 +10,46 @@ import android.util.AttributeSet
 import android.util.Log
 import android.view.View
 import com.beniezsche.mal.model.DateUtil
+import java.util.Calendar
 
 class MonthView(context: Context, attributeSet: AttributeSet) : View(context, attributeSet) {
 
-    var days: Array<Int>? = null
-    private val paint = Paint()
+    var daysInTheMonth: Array<Int>? = null
+    var isCurrentMonth = false
+    private val dateTextPaint = Paint()
     private val boxPaint = Paint()
+    private val currentDatePaint = Paint()
 
+    private var textBox = Rect()
 
-    var textBox = Rect()
+    private var saturdayAndSundayPaint = Paint()
 
-    var textBoxPaint = Paint()
+    private var viewWidth = 0
+    private var viewHeight = 0
+
+    private var currentDay = Calendar.getInstance()[Calendar.DAY_OF_MONTH]
 
     private val dateTextRectangles : ArrayList<Rect> = ArrayList()
-
-    init {
-        Log.d(DateUtil.CURRENT_DEBUG, "month view created" )
-    }
+    private val weekNamesRectangles : ArrayList<Rect> = ArrayList()
 
     override fun onDraw(canvas: Canvas?) {
         super.onDraw(canvas)
 
         dateTextRectangles.clear()
+        weekNamesRectangles.clear()
 
+        dateTextPaint.textSize = dpToPx(10).toFloat()
+        dateTextPaint.color = Color.BLACK
 
-        paint.textSize = dpToPx(10).toFloat()
-        paint.color = Color.BLACK
+        saturdayAndSundayPaint.textSize = dpToPx(10).toFloat()
+        saturdayAndSundayPaint.color = Color.RED
 
-        boxPaint.style = Paint.Style.STROKE;
+        currentDatePaint.style = Paint.Style.STROKE
+        currentDatePaint.color = Color.RED
+        currentDatePaint.strokeWidth = 2f
+
+        boxPaint.style = Paint.Style.STROKE
         boxPaint.color = Color.RED
-
-        textBoxPaint.style = Paint.Style.STROKE;
-        textBoxPaint.color = Color.GREEN
 
         val numberOfDivisions = 7
 
@@ -57,15 +65,14 @@ class MonthView(context: Context, attributeSet: AttributeSet) : View(context, at
 
         val verticalGap = dpToPx(5)
 
-        var i = 1
-
-        while (i <= days!!.size ) {
+        var weekNamesCounter = 1
+        while (weekNamesCounter <= 7 ) {
 
             val rect = Rect(left, top, right, bottom)
 
-            dateTextRectangles.add(rect)
+            weekNamesRectangles.add(rect)
 
-            if (i % numberOfDivisions == 0) {
+            if (weekNamesCounter % numberOfDivisions == 0) {
                 top += dpToPx(30) + verticalGap
                 bottom += dpToPx(30) + verticalGap
                 left = firstX
@@ -75,17 +82,41 @@ class MonthView(context: Context, attributeSet: AttributeSet) : View(context, at
                 left += firstWidth
                 right += firstWidth
             }
-            i++
+
+            weekNamesCounter++
         }
 
+        var daysInMonthCounter = 1
+        while (daysInMonthCounter <= daysInTheMonth!!.size ) {
 
-        for ((index,rect) in dateTextRectangles.withIndex()) {
-//            canvas?.drawRect(rect, boxPaint)
+            val rect = Rect(left, top, right, bottom)
 
+            dateTextRectangles.add(rect)
 
-            paint.measureText(index.toString())
-            paint.getTextBounds(index.toString(),0, index.toString().length, textBox)
-            paint.textAlign = Paint.Align.CENTER
+            if (daysInMonthCounter % numberOfDivisions == 0) {
+                top += dpToPx(30) + verticalGap
+                bottom += dpToPx(30) + verticalGap
+                left = firstX
+                right = firstWidth
+            }
+            else {
+                left += firstWidth
+                right += firstWidth
+            }
+            daysInMonthCounter++
+        }
+
+        //draw the days of week
+        for ((index,rect) in weekNamesRectangles.withIndex()) {
+            //canvas?.drawRect(rect, boxPaint)
+
+            dateTextPaint.measureText(index.toString())
+            dateTextPaint.getTextBounds(index.toString(),0, index.toString().length, textBox)
+            dateTextPaint.textAlign = Paint.Align.CENTER
+
+            saturdayAndSundayPaint.measureText(index.toString())
+            saturdayAndSundayPaint.getTextBounds(index.toString(),0, index.toString().length, textBox)
+            saturdayAndSundayPaint.textAlign = Paint.Align.CENTER
 
             val height = textBox.height()
             val width = textBox.width()
@@ -94,47 +125,62 @@ class MonthView(context: Context, attributeSet: AttributeSet) : View(context, at
 
 //            canvas?.drawRect(textBox, textBoxPaint)
 
-            val date = if (days?.get(index) == 0) " " else days?.get(index).toString()
+            val nameOfDay = getDayOfWeek(index + 1)
 
-            canvas?.drawText(date, (rect.left + ((rect.right - rect.left)/2)).toFloat(), (rect.top + ((rect.bottom - rect.top)/2)).toFloat(), paint)
+            if (nameOfDay == "Sat" || nameOfDay == "Sun")
+                canvas?.drawText(nameOfDay, (rect.left + ((rect.right - rect.left)/2)).toFloat(), (rect.top + ((rect.bottom - rect.top)/2)).toFloat(), saturdayAndSundayPaint)
+            else
+                canvas?.drawText(nameOfDay, (rect.left + ((rect.right - rect.left)/2)).toFloat(), (rect.top + ((rect.bottom - rect.top)/2)).toFloat(), dateTextPaint)
+        }
+
+        //draw the dates
+        for ((index,rect) in dateTextRectangles.withIndex()) {
+            //canvas?.drawRect(rect, boxPaint)
+
+            dateTextPaint.measureText(index.toString())
+            dateTextPaint.getTextBounds(index.toString(),0, index.toString().length, textBox)
+            dateTextPaint.textAlign = Paint.Align.CENTER
+
+            val height = textBox.height()
+            val width = textBox.width()
+
+//            Log.d(DateUtil.CURRENT_DEBUG, "${textBox.left} ${textBox.top}")
+
+//            canvas?.drawRect(textBox, textBoxPaint)
+
+            val date = if (daysInTheMonth?.get(index) == 0) " " else daysInTheMonth?.get(index).toString()
+
+            canvas?.drawText(date, (rect.left + ((rect.right - rect.left)/2)).toFloat(), (rect.top + ((rect.bottom - rect.top)/2)).toFloat(), dateTextPaint)
+
+            if (isCurrentMonth && currentDay == daysInTheMonth?.get(index)) {
+                canvas?.drawCircle((rect.left + ((rect.right - rect.left)/2)).toFloat(), (rect.top + ((rect.bottom - rect.top)/2)).toFloat() - 7f, 20f, currentDatePaint )
+                canvas?.drawText(date, (rect.left + ((rect.right - rect.left)/2)).toFloat(), (rect.top + ((rect.bottom - rect.top)/2)).toFloat(), dateTextPaint)
+            }
+            else {
+                canvas?.drawText(date, (rect.left + ((rect.right - rect.left)/2)).toFloat(), (rect.top + ((rect.bottom - rect.top)/2)).toFloat(), dateTextPaint)
+            }
         }
     }
 
     override fun onMeasure(widthMeasureSpec: Int, heightMeasureSpec: Int) {
         super.onMeasure(widthMeasureSpec, heightMeasureSpec)
         Log.d(DateUtil.CURRENT_DEBUG, "onMeasureCalled" )
-//        val widthMode = MeasureSpec.getMode(widthMeasureSpec)
-//        val heightMode = MeasureSpec.getMode(heightMeasureSpec)
-//        val widthSize = MeasureSpec.getSize(widthMeasureSpec)
-//        val heightSize = MeasureSpec.getSize(heightMeasureSpec)
-//        var width = paddingLeft + paddingRight
-//        var height = paddingTop + paddingBottom
-//
-//        if (widthMode == MeasureSpec.EXACTLY) {
-//            width = widthSize
-//        } else {
-//            // here really measure the view
-//            width = Math.max(width, suggestedMinimumWidth)
-//            width = width
-//            if (widthMode == MeasureSpec.AT_MOST) width = Math.min(widthSize, width)
-//        }
-//
-//        if (heightMode == MeasureSpec.EXACTLY) {
-//            height = heightSize
-//        } else {
-//            // here really measure the view when its width is known
-//            height = Math.max(height, suggestedMinimumHeight)
-//            height = height
-//            if (heightMode == MeasureSpec.AT_MOST) height = Math.min(height, heightSize)
-//        }
-//
-//        setMeasuredDimension(width, height)
     }
 
+    private fun getDayOfWeek(position: Int) : String {
 
+        when(position) {
+            1 -> return "Sun"
+            2 -> return "Mon"
+            3 -> return "Tue"
+            4 -> return "Wed"
+            5 -> return "Thu"
+            6 -> return "Fri"
+            7 -> return "Sat"
+        }
 
-    var viewWidth = 0
-    var viewHeight = 0
+        return "0"
+    }
 
     override fun onSizeChanged(w: Int, h: Int, oldw: Int, oldh: Int) {
         Log.d(DateUtil.CURRENT_DEBUG, "on size changed called")
@@ -142,44 +188,6 @@ class MonthView(context: Context, attributeSet: AttributeSet) : View(context, at
 
         viewWidth = w
         viewHeight = h
-
-//        val numberOfDivisions = 7
-//
-//        val firstWidth = viewWidth/numberOfDivisions
-//        val firstHeight = dpToPx(30)
-//        val firstX = dpToPx(5)
-//        val firstY = dpToPx(0)
-//
-//        var left = firstX
-//        var top = firstY
-//        var right = firstWidth
-//        var bottom = dpToPx(30)
-//
-//        val verticalGap = dpToPx(5)
-//
-//        var i = 1
-//
-//        while (i <= days!!.size ) {
-//
-//            val rect = Rect(left, top, right, bottom)
-//
-//            dateTextRectangles.add(rect)
-//
-//            if (i % numberOfDivisions == 0) {
-//               top += dpToPx(30) + verticalGap
-//               bottom += dpToPx(30) + verticalGap
-//               left = firstX
-//               right = firstWidth
-//            }
-//            else {
-//                left += firstWidth
-//                right += firstWidth
-//            }
-//            i++
-//        }
-
-//        Log.d(DateUtil.CURRENT_DEBUG, "boxes : ${dateTextRectangles.size}")
-
     }
 
     private fun pxToDp(px: Int): Int {
