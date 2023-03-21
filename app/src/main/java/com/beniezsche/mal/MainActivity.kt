@@ -40,7 +40,7 @@ class MainActivity : AppCompatActivity() {
         super.onResume()
 
         if(rvMonths.layoutManager != null){
-            rvMonths.layoutManager?.scrollToPosition(DateUtil.getCurrentMonth() - 1)
+            //rvMonths.layoutManager?.scrollToPosition(DateUtil.getCurrentMonth() - 1)
         }
     }
 }

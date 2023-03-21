@@ -2,46 +2,46 @@ package com.beniezsche.mal.custom_view
 
 import android.content.Context
 import android.content.res.Resources
-import android.graphics.Canvas
-import android.graphics.Color
-import android.graphics.Paint
-import android.graphics.Rect
+import android.graphics.*
 import android.util.AttributeSet
 import android.util.Log
 import android.view.View
 import com.beniezsche.mal.model.DateUtil
 import java.util.Calendar
+import kotlin.math.ceil
+import kotlin.math.round
 
 class MonthView(context: Context, attributeSet: AttributeSet) : View(context, attributeSet) {
 
-    var daysInTheMonth: Array<Int>? = null
+    lateinit var daysInTheMonth: Array<Int>
     var isCurrentMonth = false
     private val dateTextPaint = Paint()
     private val boxPaint = Paint()
     private val currentDatePaint = Paint()
 
-    private var textBox = Rect()
+    private val textBox = Rect()
 
-    private var saturdayAndSundayPaint = Paint()
+    private val saturdayAndSundayPaint = Paint()
 
     private var viewWidth = 0
     private var viewHeight = 0
 
+    private val numberOfDaysInAWeek = 7
+
+    private val defaultCellHeight = 60f //dpToPx(25)
+    private val cellMargin = 0f //dpToPx(5)
+
     private var currentDay = Calendar.getInstance()[Calendar.DAY_OF_MONTH]
 
-    private val dateTextRectangles : ArrayList<Rect> = ArrayList()
-    private val weekNamesRectangles : ArrayList<Rect> = ArrayList()
+    private val dateTextRects : ArrayList<RectF> = ArrayList()
+    private val weekNamesRects: ArrayList<RectF> = ArrayList()
 
-    override fun onDraw(canvas: Canvas?) {
-        super.onDraw(canvas)
+    init {
 
-        dateTextRectangles.clear()
-        weekNamesRectangles.clear()
-
-        dateTextPaint.textSize = dpToPx(10).toFloat()
+        dateTextPaint.textSize = 20f//dpToPx(10).toFloat()
         dateTextPaint.color = Color.BLACK
 
-        saturdayAndSundayPaint.textSize = dpToPx(10).toFloat()
+        saturdayAndSundayPaint.textSize = 20f //dpToPx(10).toFloat()
         saturdayAndSundayPaint.color = Color.RED
 
         currentDatePaint.style = Paint.Style.STROKE
@@ -50,64 +50,67 @@ class MonthView(context: Context, attributeSet: AttributeSet) : View(context, at
 
         boxPaint.style = Paint.Style.STROKE
         boxPaint.color = Color.RED
+    }
 
-        val numberOfDivisions = 7
 
-        val firstWidth = viewWidth/numberOfDivisions
-        val firstHeight = dpToPx(30)
-        val firstX = dpToPx(5)
-        val firstY = dpToPx(0)
+    override fun onDraw(canvas: Canvas?) {
+        super.onDraw(canvas)
 
-        var left = firstX
-        var top = firstY
-        var right = firstWidth
-        var bottom = dpToPx(30)
 
-        val verticalGap = dpToPx(5)
+        //canvas?.drawRect(0F, 0F, viewWidth.toFloat(), viewHeight.toFloat(), boxPaint)
 
-        var weekNamesCounter = 1
-        while (weekNamesCounter <= 7 ) {
+        dateTextRects.clear()
+        weekNamesRects.clear()
 
-            val rect = Rect(left, top, right, bottom)
+        val cellWidth: Float = (viewWidth).toFloat()/numberOfDaysInAWeek.toFloat()
+        val cellHeight = defaultCellHeight
+        val xOfFirstCell  = 0f //dpToPx(5)
+        val yOfFirstCell  = 0f //dpToPx(5)
 
-            weekNamesRectangles.add(rect)
+        var left = xOfFirstCell
+        var top = yOfFirstCell
+        var right = cellWidth
+        var bottom = cellHeight
 
-            if (weekNamesCounter % numberOfDivisions == 0) {
-                top += dpToPx(30) + verticalGap
-                bottom += dpToPx(30) + verticalGap
-                left = firstX
-                right = firstWidth
+        for (weekNamesCounter in 1 .. numberOfDaysInAWeek) {
+
+            val rect = RectF(left, top, right, bottom)
+
+            weekNamesRects.add(rect)
+
+            if (weekNamesCounter % numberOfDaysInAWeek == 0) {
+                top += (cellHeight)
+                bottom += (cellHeight)
+                left = xOfFirstCell
+                right = cellWidth
             }
             else {
-                left += firstWidth
-                right += firstWidth
+                left += cellWidth
+                right += cellWidth
             }
-
-            weekNamesCounter++
         }
 
-        var daysInMonthCounter = 1
-        while (daysInMonthCounter <= daysInTheMonth!!.size ) {
+        for (daysInMonthCounter in 1..daysInTheMonth.size) {
 
-            val rect = Rect(left, top, right, bottom)
+            val rect = RectF(left, top, right, bottom)
 
-            dateTextRectangles.add(rect)
+            dateTextRects.add(rect)
 
-            if (daysInMonthCounter % numberOfDivisions == 0) {
-                top += dpToPx(30) + verticalGap
-                bottom += dpToPx(30) + verticalGap
-                left = firstX
-                right = firstWidth
+            if (daysInMonthCounter % numberOfDaysInAWeek == 0) {
+                top += cellHeight //+ cellMargin
+                left = xOfFirstCell
+                bottom += cellHeight// + cellMargin
+                right = cellWidth
             }
             else {
-                left += firstWidth
-                right += firstWidth
+                left += cellWidth
+                right += cellWidth
             }
-            daysInMonthCounter++
+
         }
 
         //draw the days of week
-        for ((index,rect) in weekNamesRectangles.withIndex()) {
+        for ((index,rect) in weekNamesRects.withIndex()) {
             //canvas?.drawRect(rect, boxPaint)
 
             dateTextPaint.measureText(index.toString())
@@ -118,13 +121,6 @@ class MonthView(context: Context, attributeSet: AttributeSet) : View(context, at
             saturdayAndSundayPaint.getTextBounds(index.toString(),0, index.toString().length, textBox)
             saturdayAndSundayPaint.textAlign = Paint.Align.CENTER
 
-            val height = textBox.height()
-            val width = textBox.width()
-
-//            Log.d(DateUtil.CURRENT_DEBUG, "${textBox.left} ${textBox.top}")
-
-//            canvas?.drawRect(textBox, textBoxPaint)
-
             val nameOfDay = getDayOfWeek(index + 1)
 
             if (nameOfDay == "Sat" || nameOfDay == "Sun")
@@ -134,7 +130,7 @@ class MonthView(context: Context, attributeSet: AttributeSet) : View(context, at
         }
 
         //draw the dates
-        for ((index,rect) in dateTextRectangles.withIndex()) {
+        for ((index,rect) in dateTextRects.withIndex()) {
             //canvas?.drawRect(rect, boxPaint)
 
             dateTextPaint.measureText(index.toString())
@@ -144,27 +140,36 @@ class MonthView(context: Context, attributeSet: AttributeSet) : View(context, at
             val height = textBox.height()
             val width = textBox.width()
 
-//            Log.d(DateUtil.CURRENT_DEBUG, "${textBox.left} ${textBox.top}")
+            //Log.d(DateUtil.CURRENT_DEBUG, "${textBox.left} ${textBox.top}")
+            Log.d(DateUtil.CURRENT_DEBUG, "left: ${rect.left} top: ${rect.top} right: ${rect.right} bottom: ${rect.bottom}")
 
-//            canvas?.drawRect(textBox, textBoxPaint)
 
             val date = if (daysInTheMonth?.get(index) == 0) " " else daysInTheMonth?.get(index).toString()
 
-            canvas?.drawText(date, (rect.left + ((rect.right - rect.left)/2)).toFloat(), (rect.top + ((rect.bottom - rect.top)/2)).toFloat(), dateTextPaint)
+            canvas?.drawText(date, (rect.left + ((rect.right - rect.left)/2)), (rect.top + ((rect.bottom - rect.top)/2)), dateTextPaint)
 
             if (isCurrentMonth && currentDay == daysInTheMonth?.get(index)) {
-                canvas?.drawCircle((rect.left + ((rect.right - rect.left)/2)).toFloat(), (rect.top + ((rect.bottom - rect.top)/2)).toFloat() - 7f, 20f, currentDatePaint )
-                canvas?.drawText(date, (rect.left + ((rect.right - rect.left)/2)).toFloat(), (rect.top + ((rect.bottom - rect.top)/2)).toFloat(), dateTextPaint)
+                canvas?.drawCircle((rect.left + ((rect.right - rect.left)/2)), (rect.top + ((rect.bottom - rect.top)/2)) - 7f, 20f, currentDatePaint )
+                canvas?.drawText(date, (rect.left + ((rect.right - rect.left)/2)), (rect.top + ((rect.bottom - rect.top)/2)), dateTextPaint)
             }
             else {
-                canvas?.drawText(date, (rect.left + ((rect.right - rect.left)/2)).toFloat(), (rect.top + ((rect.bottom - rect.top)/2)).toFloat(), dateTextPaint)
+                canvas?.drawText(date, (rect.left + ((rect.right - rect.left)/2)), (rect.top + ((rect.bottom - rect.top)/2)), dateTextPaint)
             }
         }
     }
 
     override fun onMeasure(widthMeasureSpec: Int, heightMeasureSpec: Int) {
-        super.onMeasure(widthMeasureSpec, heightMeasureSpec)
-        Log.d(DateUtil.CURRENT_DEBUG, "onMeasureCalled" )
+
+        val totalHeightOfEachCell = defaultCellHeight
+        val noOfRowsOfCells = ceil(daysInTheMonth.size.toDouble()/(7).toDouble()).toInt() + 1
+        val approximateHeightOfView = ceil((totalHeightOfEachCell * noOfRowsOfCells))
+
+        val heightSpec = MeasureSpec.makeMeasureSpec(approximateHeightOfView.toInt(), MeasureSpec.UNSPECIFIED)
+
+        Log.d(DateUtil.CURRENT_DEBUG, "totalHeightOfEachCell:$totalHeightOfEachCell * noOfRowsOfCells:$noOfRowsOfCells = approximateHeightOfView:$approximateHeightOfView")
+
+        setMeasuredDimension(widthMeasureSpec, heightSpec)
+
     }
 
     private fun getDayOfWeek(position: Int) : String {
@@ -183,7 +188,7 @@ class MonthView(context: Context, attributeSet: AttributeSet) : View(context, at
     }
 
     override fun onSizeChanged(w: Int, h: Int, oldw: Int, oldh: Int) {
-        Log.d(DateUtil.CURRENT_DEBUG, "on size changed called")
+        //Log.d(DateUtil.CURRENT_DEBUG, "on size changed called")
         super.onSizeChanged(w, h, oldw, oldh)
 
         viewWidth = w
@@ -194,8 +199,8 @@ class MonthView(context: Context, attributeSet: AttributeSet) : View(context, at
         return (px / Resources.getSystem().displayMetrics.density).toInt()
     }
 
-    private fun dpToPx(dp: Int): Int {
-        return (dp * Resources.getSystem().displayMetrics.density).toInt()
+    private fun dpToPx(dp: Int): Float {
+        return (dp * Resources.getSystem().displayMetrics.density)
     }
 
 }
